@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { networkApi } from "@/apis";
 import Image from 'next/image';

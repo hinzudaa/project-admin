@@ -13,7 +13,8 @@ import {
     ShieldCheck,
     MessagesSquare,
     BookDashed,
-    ShieldAlert
+    ShieldAlert,
+    Bot
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -29,7 +30,7 @@ const menuItems = [
     { name: 'Membership', icon: CreditCard, href: '/admin/membership' },
     { name: 'Finance', icon: LayoutDashboard, href: '/admin/finance' },
     { name: 'Banner', icon: ShieldAlert, href: '/admin/banner' },
-
+    { name: 'AI Humans', icon: Bot, href: '/admin/ai-human' },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (v: boolean) => void }) {
