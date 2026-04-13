@@ -129,7 +129,7 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
               <Sparkles className="w-4 h-4 text-blue-500" />
               Visuals
             </h3>
-            
+
             <ImagePicker
               label="Persona Avatar"
               value={{ id: formData.imageId, url: formData.imageUrl }}
@@ -143,30 +143,30 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
             />
 
             <div className="space-y-4 pt-4 border-t border-white/5">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300 font-medium">Active Status</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                            type="checkbox" 
-                            name="isActive"
-                            checked={formData.isActive}
-                            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                            className="sr-only peer" 
-                        />
-                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-300 font-medium">Active Status</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
 
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-500 uppercase">Sort Order</label>
-                    <input
-                        type="number"
-                        name="sortOrder"
-                        value={formData.sortOrder}
-                        onChange={handleChange}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                    />
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase">Sort Order</label>
+                <input
+                  type="number"
+                  name="sortOrder"
+                  value={formData.sortOrder}
+                  onChange={handleChange}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -222,19 +222,15 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
             </div>
 
             <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase">AI Model</label>
-                <select
-                    name="model"
-                    value={formData.model}
-                    onChange={handleChange}
-                    className="w-full bg-[#1a1a1f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
-                >
-                    <option value="gpt-4o">GPT-4o (Most Capable)</option>
-                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
-                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                </select>
+              <label className="text-xs font-bold text-gray-500 uppercase">AI Model</label>
+              <input
+                type="text"
+                name="model"
+                placeholder="e.g. gpt-4o"
+                value={formData.model}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              />
             </div>
 
             <div className="space-y-2">
