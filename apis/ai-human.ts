@@ -28,6 +28,7 @@ export interface AIHuman {
   aiModel: string;
   isActive: boolean;
   sortOrder: number;
+  badge?: string[];
   createdAt: string;
   updatedAt: string;
 }

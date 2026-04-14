@@ -29,6 +29,7 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
     sortOrder: 0,
     imageId: "",
     imageUrl: "",
+    badge: "",
   });
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
         sortOrder: initialData.sortOrder || 0,
         imageId: initialData.image?._id || initialData.image?.id || "",
         imageUrl: initialData.image?.url || "",
+        badge: initialData.badge?.join(", ") || "",
       });
     }
   }, [initialData]);
@@ -57,6 +59,7 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
       ...formData,
       age: formData.age ? parseInt(formData.age) : null,
       sortOrder: parseInt(formData.sortOrder.toString()),
+      badge: formData.badge.split(",").map((t: string) => t.trim()).filter((t: string) => t !== ""),
     };
 
     try {
@@ -221,16 +224,30 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase">AI Model</label>
-              <input
-                type="text"
-                name="model"
-                placeholder="e.g. gpt-4o"
-                value={formData.model}
-                onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase">AI Model</label>
+                <input
+                  type="text"
+                  name="model"
+                  placeholder="e.g. gpt-4o"
+                  value={formData.model}
+                  onChange={handleChange}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase">Badges (comma separated)</label>
+                <input
+                  type="text"
+                  name="badge"
+                  placeholder="e.g. Friendly, Professional, Expert"
+                  value={formData.badge}
+                  onChange={handleChange}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

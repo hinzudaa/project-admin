@@ -144,6 +144,15 @@ export default function AIHumansPage() {
                                                         {persona.name}
                                                     </p>
                                                     <p className="text-xs text-gray-500 truncate max-w-[200px]">{persona.shortBio}</p>
+                                                    {persona.badge && persona.badge.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 mt-1">
+                                                            {persona.badge.map((b, i) => (
+                                                                <span key={i} className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-400">
+                                                                    {b}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
