@@ -41,7 +41,7 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
         shortBio: initialData.shortBio || "",
         prompt: initialData.prompt || "",
         greeting: initialData.greeting || "",
-        model: initialData.aiModel || "",
+        model: initialData.model || "",
         isActive: initialData.isActive ?? true,
         sortOrder: initialData.sortOrder || 0,
         imageId: initialData.image?._id || initialData.image?.id || "",

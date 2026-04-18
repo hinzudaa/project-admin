@@ -158,7 +158,7 @@ export default function AIHumansPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-mono text-gray-300 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
-                                                {persona.aiModel}
+                                                {persona.model}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

@@ -25,7 +25,7 @@ export interface AIHuman {
   shortBio: string;
   prompt: string;
   greeting?: string;
-  aiModel: string;
+  model: string;
   isActive: boolean;
   sortOrder: number;
   badge?: string[];
