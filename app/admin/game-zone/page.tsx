@@ -154,15 +154,15 @@ export default function GameZonesPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-mono text-gray-300 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
-                                                {item.aiModel}
+                                                {item.model}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <button
                                                 onClick={() => toggleStatus(item)}
                                                 className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${item.isActive
-                                                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
                                                     }`}
                                             >
                                                 {item.isActive ? (
