@@ -6,15 +6,13 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
     Users,
-    Newspaper,
-    BookOpen,
     CreditCard,
     ChevronRight,
     ShieldCheck,
     MessagesSquare,
-    BookDashed,
     ShieldAlert,
-    Bot
+    Bot,
+    Gamepad2
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -31,6 +29,7 @@ const menuItems = [
     { name: 'Finance', icon: LayoutDashboard, href: '/admin/finance' },
     { name: 'Banner', icon: ShieldAlert, href: '/admin/banner' },
     { name: 'AI Humans', icon: Bot, href: '/admin/ai-human' },
+    { name: 'Game Zone', icon: Gamepad2, href: '/admin/game-zone' },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (v: boolean) => void }) {
