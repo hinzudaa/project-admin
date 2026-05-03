@@ -125,6 +125,7 @@ export default function UsersPage() {
                                 <th className="px-6 py-4 text-sm font-semibold text-gray-400">Role</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-gray-400">Membership</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-gray-400">Gender</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-gray-400">Created Date</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-gray-400 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -210,6 +211,9 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-gray-400 capitalize">{user.gender || 'Not specified'}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-gray-400 capitalize">{user.createdAt?.split('Z')[0]}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">

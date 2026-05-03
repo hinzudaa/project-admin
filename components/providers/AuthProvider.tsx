@@ -18,6 +18,7 @@ export interface User {
     gender?: string;
     membershipExpiresAt?: string;
     avatar?: string;
+    createdAt?: string;
 }
 
 interface AuthContextType {
