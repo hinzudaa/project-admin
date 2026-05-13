@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, Save, Calendar, FileText, Globe, EyeOff, Info, Hash, DollarSign } from 'lucide-react';
+import { X, Loader2, Save, Calendar, FileText, Globe, EyeOff, Info, Hash, DollarSign, Layers } from 'lucide-react';
 import { membershipApi } from '@/apis';
 import { ImagePicker } from '../form/image-picker';
 
@@ -32,6 +32,7 @@ export default function MembershipPlanModal({ isOpen, onClose, onSuccess, plan }
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        tier: 'basic' as 'basic' | 'standard' | 'premium',
         months: 1 as number | '',
         price: 0 as number | '',
         isActive: true,
@@ -44,6 +45,7 @@ export default function MembershipPlanModal({ isOpen, onClose, onSuccess, plan }
             setFormData({
                 title: plan.title || '',
                 description: plan.description || '',
+                tier: (plan as any).tier || 'basic',
                 months: plan.months ?? 1,
                 price: plan.price ?? 0,
                 isActive: plan.isActive ?? true,
@@ -54,6 +56,7 @@ export default function MembershipPlanModal({ isOpen, onClose, onSuccess, plan }
             setFormData({
                 title: '',
                 description: '',
+                tier: 'basic',
                 months: 1,
                 price: 0,
                 isActive: true,
@@ -151,6 +154,28 @@ export default function MembershipPlanModal({ isOpen, onClose, onSuccess, plan }
                                             value={formData.title}
                                             onChange={handleChange}
                                         />
+                                    </div>
+                                </div>
+
+                                {/* Tier Section */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-400 ml-1">Tier</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {(['basic', 'standard', 'premium'] as const).map((t) => (
+                                            <button
+                                                key={t}
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, tier: t }))}
+                                                className={`py-3 rounded-2xl border font-semibold text-sm capitalize transition-all ${formData.tier === t
+                                                    ? t === 'premium' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                                                        : t === 'standard' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                                                        : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                                                    : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'
+                                                }`}
+                                            >
+                                                {t}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 

@@ -12,7 +12,7 @@ const TOKEN_TYPE_STORAGE_KEY = "token_type";
 let cachedCredentials: AuthCredentials | null = null;
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE,
   withCredentials: true,
 });
 
