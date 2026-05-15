@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Loader2, Save, Key, Type, Database, ToggleLeft, ToggleRight, Info } from 'lucide-react';
 import { experienceApi } from '@/apis';
 import { ExperienceRule } from '@/apis/experience';
@@ -23,7 +23,12 @@ export default function ExperienceRuleModal({ isOpen, onClose, onSuccess, rule }
         isActive: true,
     });
 
-    useEffect(() => {
+    const [prevRule, setPrevRule] = useState(rule);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+    if (rule !== prevRule || isOpen !== prevIsOpen) {
+        setPrevRule(rule);
+        setPrevIsOpen(isOpen);
         if (rule) {
             setFormData({
                 key: rule.key || '',
@@ -43,7 +48,7 @@ export default function ExperienceRuleModal({ isOpen, onClose, onSuccess, rule }
                 isActive: true,
             });
         }
-    }, [rule, isOpen]);
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;

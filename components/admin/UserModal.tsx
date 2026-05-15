@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { X, Loader2, Save, User as UserIcon, Shield, Lock, Mail } from 'lucide-react';
+import { X, Loader2, Save, User as UserIcon, Shield, Lock } from 'lucide-react';
 import { adminCreateUser } from '@/apis/user';
 import toast from 'react-hot-toast';
 import { User } from '@/components/providers/AuthProvider';

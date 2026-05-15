@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import useSWR from "swr";
 import MembershipDashboard from '@/components/admin/MembershipDashboard';
 import { Loader2, LayoutDashboard, Calendar, RefreshCcw } from 'lucide-react';

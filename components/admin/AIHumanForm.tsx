@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { aiHumanApi } from "@/apis";
@@ -32,7 +32,10 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
     badge: "",
   });
 
-  useEffect(() => {
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
     if (initialData) {
       setFormData({
         name: initialData.name || "",
@@ -49,7 +52,7 @@ export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
         badge: initialData.badge?.join(", ") || "",
       });
     }
-  }, [initialData]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

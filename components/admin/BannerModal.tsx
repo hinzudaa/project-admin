@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { bannerApi } from "@/apis";
 import toast from "react-hot-toast";
 import { ImagePicker } from "../form/image-picker";
@@ -26,7 +26,12 @@ export default function BannerModal({ isOpen, onClose, onSuccess, banner, curren
     const [image, setImage] = useState<{ id?: string; url?: string } | null>(null);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
+    const [prevBanner, setPrevBanner] = useState(banner);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+    if (banner !== prevBanner || isOpen !== prevIsOpen) {
+        setPrevBanner(banner);
+        setPrevIsOpen(isOpen);
         if (banner) {
             setTitle(banner.title);
             setDescription(banner.description);
@@ -36,7 +41,7 @@ export default function BannerModal({ isOpen, onClose, onSuccess, banner, curren
             setDescription("");
             setImage(null);
         }
-    }, [banner, isOpen]);
+    }
 
     const handleSubmit = async () => {
         if (!title || !description || !image?.id) {

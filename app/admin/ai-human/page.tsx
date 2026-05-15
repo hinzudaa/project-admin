@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { aiHumanApi } from '@/apis';
 import { AIHuman } from '@/apis/ai-human';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
+import Image from 'next/image';
 import {
     Bot,
     Search,
@@ -19,6 +19,7 @@ import {
     ToggleRight,
     UserCircle
 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AIHumansPage() {
     const [page, setPage] = useState(1);
@@ -132,9 +133,15 @@ export default function AIHumansPage() {
                                     <tr key={persona._id} className="hover:bg-white/2 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold overflow-hidden shrink-0">
+                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold overflow-hidden shrink-0 relative">
                                                     {persona.image?.url ? (
-                                                        <img src={persona.image.url} alt={persona.name} className="w-full h-full object-cover" />
+                                                        <Image
+                                                            src={persona.image.url}
+                                                            alt={persona.name}
+                                                            fill
+                                                            className="object-cover"
+                                                            unoptimized
+                                                        />
                                                     ) : (
                                                         <UserCircle className="w-6 h-6 opacity-30" />
                                                     )}
@@ -170,11 +177,10 @@ export default function AIHumansPage() {
                                         <td className="px-6 py-4">
                                             <button
                                                 onClick={() => toggleStatus(persona)}
-                                                className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${
-                                                    persona.isActive
+                                                className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${persona.isActive
                                                         ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                                                         : 'bg-red-500/10 text-red-500 border-red-500/20'
-                                                }`}
+                                                    }`}
                                             >
                                                 {persona.isActive ? (
                                                     <><ToggleRight className="w-4 h-4" /> Active</>

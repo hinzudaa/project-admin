@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { GameZone, gameZoneApi } from '@/apis/game-zone';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     Gamepad2,
     Search,
@@ -131,9 +132,15 @@ export default function GameZonesPage() {
                                     <tr key={item._id} className="hover:bg-white/2 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold overflow-hidden shrink-0">
+                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold overflow-hidden shrink-0 relative">
                                                     {item.image?.url ? (
-                                                        <img src={item.image.url} alt={item.title} className="w-full h-full object-cover" />
+                                                        <Image
+                                                            src={item.image.url}
+                                                            alt={item.title}
+                                                            fill
+                                                            className="object-cover"
+                                                            unoptimized
+                                                        />
                                                     ) : (
                                                         <Gamepad className="w-6 h-6 opacity-30" />
                                                     )}

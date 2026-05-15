@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { GameZone, gameZoneApi } from "@/apis/game-zone";
@@ -31,7 +31,10 @@ export default function GameZoneForm({ id, initialData }: GameZoneFormProps) {
     imageUrl: "",
   });
 
-  useEffect(() => {
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
     if (initialData) {
       setFormData({
         title: initialData.title || "",
@@ -48,7 +51,7 @@ export default function GameZoneForm({ id, initialData }: GameZoneFormProps) {
         imageUrl: initialData.image?.url || "",
       });
     }
-  }, [initialData]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

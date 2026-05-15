@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { movieApi, userApi } from '@/apis';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 import {
     Film,
     Search,
@@ -194,9 +195,15 @@ export default function MoviesPage() {
                                         <tr key={movie._id} className="hover:bg-white/2 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-14 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                                                    <div className="w-14 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center overflow-hidden shrink-0 relative">
                                                         {movie.image?.url ? (
-                                                            <img src={movie.image.url} alt={movie.title} className="w-full h-full object-cover" />
+                                                            <Image
+                                                                src={movie.image.url}
+                                                                alt={movie.title}
+                                                                fill
+                                                                className="object-cover"
+                                                                unoptimized
+                                                            />
                                                         ) : (
                                                             <Film className="w-5 h-5 text-blue-500 opacity-40" />
                                                         )}
@@ -307,10 +314,12 @@ function BundleSettings() {
     const [discountedPrice, setDiscountedPrice] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [image, setImage] = useState<{ id?: string, url?: string } | null>(null);
-    const initialized = useRef(false);
 
-    useEffect(() => {
-        if (data?.data && !initialized.current) {
+    const [prevData, setPrevData] = useState(data);
+
+    if (data !== prevData) {
+        setPrevData(data);
+        if (data?.data) {
             const bundle = data.data;
             setTitle(bundle.title || '');
             setDescription(bundle.description || '');
@@ -318,9 +327,8 @@ function BundleSettings() {
             setDiscountedPrice(bundle.discountedPrice != null ? String(bundle.discountedPrice) : '');
             setIsActive(bundle.isActive ?? true);
             setImage(bundle.image ? { id: bundle.image._id, url: bundle.image.url } : null);
-            initialized.current = true;
         }
-    }, [data]);
+    }
 
     const handleSave = async () => {
         setLoading(true);

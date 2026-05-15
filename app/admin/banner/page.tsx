@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import useSWR from "swr";
 import toast from "react-hot-toast";
+import Image from 'next/image';
 import {
     Image as ImageIcon,
     Calendar,
@@ -120,11 +121,15 @@ export default function BannerPage() {
                                     <tr key={banner._id} className="hover:bg-white/2 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <img
-                                                    src={banner.image?.url}
-                                                    alt={banner.title}
-                                                    className="w-16 h-12 object-cover rounded-lg border border-white/10"
-                                                />
+                                                <div className="w-16 h-12 relative rounded-lg border border-white/10 overflow-hidden shrink-0">
+                                                    <Image
+                                                        src={banner.image?.url}
+                                                        alt={banner.title}
+                                                        fill
+                                                        className="object-cover"
+                                                        unoptimized
+                                                    />
+                                                </div>
                                                 <div>
                                                     <p className="text-white font-medium">{banner.title}</p>
                                                     <p className="text-xs text-gray-500">ID: {banner._id.slice(-6)}</p>

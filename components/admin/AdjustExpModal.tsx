@@ -26,7 +26,12 @@ export default function AdjustExpModal({ isOpen, onClose, onSuccess, userId }: A
         note: '',
     });
 
-    React.useEffect(() => {
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+    const [prevUserId, setPrevUserId] = useState(userId);
+
+    if (isOpen !== prevIsOpen || userId !== prevUserId) {
+        setPrevIsOpen(isOpen);
+        setPrevUserId(userId);
         if (isOpen) {
             setFormData({
                 userId: userId || '',
@@ -35,7 +40,7 @@ export default function AdjustExpModal({ isOpen, onClose, onSuccess, userId }: A
                 note: '',
             });
         }
-    }, [isOpen, userId]);
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;

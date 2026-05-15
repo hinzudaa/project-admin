@@ -21,6 +21,7 @@ import {
 import UserModal from '@/components/admin/UserModal';
 import AdjustExpModal from '@/components/admin/AdjustExpModal';
 import { User } from '@/components/providers/AuthProvider';
+import Image from 'next/image';
 
 export default function UsersPage() {
     const [page, setPage] = useState(1);
@@ -154,9 +155,15 @@ export default function UsersPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="relative group/avatar">
-                                                    <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold overflow-hidden">
+                                                    <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-bold overflow-hidden relative">
                                                         {user.avatar ? (
-                                                            <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                                                            <Image
+                                                                src={user.avatar}
+                                                                alt=""
+                                                                fill
+                                                                className="object-cover"
+                                                                unoptimized
+                                                            />
                                                         ) : (
                                                             (user.name || user.username || user.email)[0].toUpperCase()
                                                         )}

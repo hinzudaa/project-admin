@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { X, Loader2, Save, Calendar, FileText, Globe, EyeOff, Info, Hash, DollarSign, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Loader2, Save, Calendar, FileText, Globe, EyeOff, Info, Hash, DollarSign } from 'lucide-react';
 import { membershipApi } from '@/apis';
 import { ImagePicker } from '../form/image-picker';
 
@@ -9,6 +9,7 @@ interface MembershipPlan {
     _id: string;
     title: string;
     description?: string;
+    tier?: 'basic' | 'standard' | 'premium';
     months: number;
     price: number;
     isActive: boolean;
@@ -40,12 +41,17 @@ export default function MembershipPlanModal({ isOpen, onClose, onSuccess, plan }
         image: null as { id?: string; url?: string } | null,
     });
 
-    useEffect(() => {
+    const [prevPlan, setPrevPlan] = useState(plan);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+    if (plan !== prevPlan || isOpen !== prevIsOpen) {
+        setPrevPlan(plan);
+        setPrevIsOpen(isOpen);
         if (plan) {
             setFormData({
                 title: plan.title || '',
                 description: plan.description || '',
-                tier: (plan as any).tier || 'basic',
+                tier: plan.tier || 'basic',
                 months: plan.months ?? 1,
                 price: plan.price ?? 0,
                 isActive: plan.isActive ?? true,
@@ -64,7 +70,7 @@ export default function MembershipPlanModal({ isOpen, onClose, onSuccess, plan }
                 image: null,
             });
         }
-    }, [plan, isOpen]);
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;

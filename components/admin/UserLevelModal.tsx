@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Loader2, Save, Trophy, Type, Star, ToggleLeft, ToggleRight } from 'lucide-react';
 import { experienceApi } from '@/apis';
 import { UserLevel } from '@/apis/experience';
@@ -21,7 +21,12 @@ export default function UserLevelModal({ isOpen, onClose, onSuccess, level }: Us
         isActive: true,
     });
 
-    useEffect(() => {
+    const [prevLevel, setPrevLevel] = useState(level);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+    if (level !== prevLevel || isOpen !== prevIsOpen) {
+        setPrevLevel(level);
+        setPrevIsOpen(isOpen);
         if (level) {
             setFormData({
                 level: level.level || 0,
@@ -37,7 +42,7 @@ export default function UserLevelModal({ isOpen, onClose, onSuccess, level }: Us
                 isActive: true,
             });
         }
-    }, [level, isOpen]);
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type } = e.target;
