@@ -47,3 +47,10 @@ export const adminGrantMoviePurchase = async (data: Record<string, unknown>) => 
     const res = await appHttpRequest.post("/movies/purchases/grant", data);
     return res;
 };
+
+export const adminUploadMovieVideo = async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("video", file);
+    const res = await appHttpRequest.post("/movies/" + id + "/video", formData);
+    return res;
+};

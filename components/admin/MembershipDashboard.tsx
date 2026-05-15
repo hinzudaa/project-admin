@@ -23,6 +23,7 @@ import {
     PieChart as PieIcon,
     ArrowDownCircle,
     ArrowUpCircle,
+    Film,
 } from "lucide-react";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
@@ -56,9 +57,10 @@ interface DashboardStats {
 interface DashboardProps {
     stats: DashboardStats | null;
     finance?: FinanceStats;
+    movieCount?: number;
 }
 
-export default function MembershipDashboard({ stats, finance }: DashboardProps) {
+export default function MembershipDashboard({ stats, finance, movieCount }: DashboardProps) {
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -141,6 +143,16 @@ export default function MembershipDashboard({ stats, finance }: DashboardProps) 
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Net Balance</span>
                     <span className="text-2xl font-black text-white mt-2 leading-none">
                         ₮{(finance?.balance || 0).toLocaleString()}
+                    </span>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col hover:bg-white/[0.07] transition-all group shadow-xl">
+                    <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Film className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Movies</span>
+                    <span className="text-2xl font-black text-white mt-2 leading-none">
+                        {(movieCount || 0).toLocaleString()}
                     </span>
                 </div>
             </div>
