@@ -41,11 +41,38 @@ export interface AdminMovie {
     updatedAt: string;
 }
 
+export interface AdminMovieBundle {
+    _id: string;
+    kind: "all" | "custom";
+    title: string;
+    description?: string | null;
+    image: AdminMovieImage | null;
+    movies: AdminMovie[];
+    movieIds: string[];
+    movieCount: number;
+    price: number;
+    discountedPrice?: number | null;
+    effectivePrice: number;
+    isActive: boolean;
+    sortOrder: number;
+    owned?: boolean;
+    totalMovies?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface AdminMovieListParams extends Record<string, unknown> {
     page?: number;
     limit?: number;
     search?: string;
     status?: MovieStatus | "";
+    isActive?: boolean | "";
+}
+
+export interface AdminMovieBundleListParams extends Record<string, unknown> {
+    page?: number;
+    limit?: number;
+    search?: string;
     isActive?: boolean | "";
 }
 
@@ -57,6 +84,17 @@ export interface AdminMoviePayload {
     discountedPrice?: number | null;
     releaseYear?: number | null;
     genres?: string[];
+    isActive?: boolean;
+    sortOrder?: number;
+}
+
+export interface AdminMovieBundlePayload {
+    title: string;
+    description?: string | null;
+    image?: string | null;
+    movieIds: string[];
+    price: number;
+    discountedPrice?: number | null;
     isActive?: boolean;
     sortOrder?: number;
 }
@@ -98,6 +136,31 @@ export const adminGetBundle = async () => {
 
 export const adminUpsertBundle = async (data: Record<string, unknown>) => {
     const res = await appHttpRequest.put("/movies/bundle", data);
+    return res;
+};
+
+export const adminListMovieBundles = async (params?: AdminMovieBundleListParams) => {
+    const res = await appHttpRequest.get("/movies/bundles", params);
+    return res as {
+        data: AdminMovieBundle[];
+        total: number;
+        page: number;
+        totalPages: number;
+    };
+};
+
+export const adminCreateMovieBundle = async (data: AdminMovieBundlePayload) => {
+    const res = await appHttpRequest.post("/movies/bundles", data);
+    return res;
+};
+
+export const adminUpdateMovieBundle = async (id: string, data: Partial<AdminMovieBundlePayload>) => {
+    const res = await appHttpRequest.put("/movies/bundles/" + id, data);
+    return res;
+};
+
+export const adminDeleteMovieBundle = async (id: string) => {
+    const res = await appHttpRequest.del("/movies/bundles/" + id);
     return res;
 };
 

@@ -12,6 +12,7 @@ import {
   Film,
   Image as ImageIcon,
   Loader2,
+  Package,
   Plus,
   Search,
   Trash2,
@@ -22,6 +23,8 @@ import {
 import { movieApi } from "@/apis";
 import type {
   AdminMovie,
+  AdminMovieBundle,
+  AdminMovieBundlePayload,
   AdminMovieListParams,
   AdminMoviePayload,
   MovieStatus,
@@ -40,6 +43,17 @@ type MovieFormState = {
   sortOrder: string;
 };
 
+type BundleFormState = {
+  title: string;
+  description: string;
+  image: { id?: string; url?: string } | null;
+  movieIds: string[];
+  price: string;
+  discountedPrice: string;
+  isActive: boolean;
+  sortOrder: string;
+};
+
 const emptyForm: MovieFormState = {
   title: "",
   description: "",
@@ -48,6 +62,17 @@ const emptyForm: MovieFormState = {
   discountedPrice: "",
   releaseYear: "",
   genres: "",
+  isActive: true,
+  sortOrder: "0",
+};
+
+const emptyBundleForm: BundleFormState = {
+  title: "",
+  description: "",
+  image: null,
+  movieIds: [],
+  price: "",
+  discountedPrice: "",
   isActive: true,
   sortOrder: "0",
 };
@@ -124,6 +149,62 @@ function buildPayload(form: MovieFormState): AdminMoviePayload {
   };
 }
 
+function buildBundlePayload(
+  form: BundleFormState,
+  selectableMovies: AdminMovie[]
+): AdminMovieBundlePayload {
+  const title = form.title.trim();
+  if (!title) throw new Error("Bundle title is required");
+
+  const movieIds = [...new Set(form.movieIds)];
+  if (movieIds.length < 2) {
+    throw new Error("Select at least 2 movies for a bundle");
+  }
+
+  const selectedMovies = selectableMovies.filter((movie) =>
+    movieIds.includes(movie._id)
+  );
+  if (selectedMovies.length !== movieIds.length) {
+    throw new Error("Selected movie list is incomplete. Refresh and try again.");
+  }
+
+  const price = toNumber(form.price, "Bundle price");
+  const discountedPrice = form.discountedPrice.trim()
+    ? toNumber(form.discountedPrice, "Bundle discounted price")
+    : null;
+  if (discountedPrice !== null && discountedPrice > price) {
+    throw new Error("Discounted price cannot be greater than price");
+  }
+
+  const selectedTotal = selectedMovies.reduce(
+    (sum, movie) => sum + movie.effectivePrice,
+    0
+  );
+  const effectivePrice =
+    discountedPrice !== null && discountedPrice < price
+      ? discountedPrice
+      : price;
+  if (effectivePrice <= 0) {
+    throw new Error("Bundle price must be greater than 0");
+  }
+  if (effectivePrice >= selectedTotal) {
+    throw new Error("Bundle price must be cheaper than selected movies total");
+  }
+
+  return {
+    title,
+    description: form.description.trim() || null,
+    image: form.image?.id || null,
+    movieIds,
+    price,
+    discountedPrice,
+    isActive: form.isActive,
+    sortOrder: form.sortOrder.trim()
+      ? toNumber(form.sortOrder, "Sort order")
+      : 0,
+  };
+}
+
 function movieToForm(movie: AdminMovie): MovieFormState {
   return {
     title: movie.title,
@@ -143,6 +224,24 @@ function movieToForm(movie: AdminMovie): MovieFormState {
     genres: movie.genres.join(", "),
     isActive: movie.isActive,
     sortOrder: String(movie.sortOrder ?? 0),
+  };
+}
+
+function bundleToForm(bundle: AdminMovieBundle): BundleFormState {
+  return {
+    title: bundle.title,
+    description: bundle.description || "",
+    image: bundle.image
+      ? { id: bundle.image._id, url: bundle.image.url }
+      : null,
+    movieIds: bundle.movieIds ?? bundle.movies.map((movie) => movie._id),
+    price: String(bundle.price ?? 0),
+    discountedPrice:
+      bundle.discountedPrice === null || bundle.discountedPrice === undefined
+        ? ""
+        : String(bundle.discountedPrice),
+    isActive: bundle.isActive,
+    sortOrder: String(bundle.sortOrder ?? 0),
   };
 }
 
@@ -389,6 +488,322 @@ function MovieModalContent({
   );
 }
 
+function BundleModal({
+  isOpen,
+  bundle,
+  movies,
+  onClose,
+  onSaved,
+}: {
+  isOpen: boolean;
+  bundle: AdminMovieBundle | null;
+  movies: AdminMovie[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <BundleModalContent
+      key={bundle?._id ?? "new-bundle"}
+      bundle={bundle}
+      movies={movies}
+      onClose={onClose}
+      onSaved={onSaved}
+    />
+  );
+}
+
+function BundleModalContent({
+  bundle,
+  movies,
+  onClose,
+  onSaved,
+}: {
+  bundle: AdminMovieBundle | null;
+  movies: AdminMovie[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const selectableMovies = useMemo(() => {
+    const map = new Map<string, AdminMovie>();
+    movies.forEach((movie) => map.set(movie._id, movie));
+    bundle?.movies.forEach((movie) => map.set(movie._id, movie));
+    return Array.from(map.values());
+  }, [bundle?.movies, movies]);
+
+  const [form, setForm] = useState<BundleFormState>(() =>
+    bundle ? bundleToForm(bundle) : emptyBundleForm
+  );
+  const [saving, setSaving] = useState(false);
+
+  const selectedMovies = selectableMovies.filter((movie) =>
+    form.movieIds.includes(movie._id)
+  );
+  const selectedTotal = selectedMovies.reduce(
+    (sum, movie) => sum + movie.effectivePrice,
+    0
+  );
+  const bundlePrice = Number(form.discountedPrice || form.price || 0);
+  const savings = Math.max(0, selectedTotal - bundlePrice);
+
+  const setField = <K extends keyof BundleFormState>(
+    key: K,
+    value: BundleFormState[K]
+  ) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const toggleMovie = (id: string) => {
+    setForm((current) => ({
+      ...current,
+      movieIds: current.movieIds.includes(id)
+        ? current.movieIds.filter((movieId) => movieId !== id)
+        : [...current.movieIds, id],
+    }));
+  };
+
+  const handleSubmit = async () => {
+    let payload: AdminMovieBundlePayload;
+    try {
+      payload = buildBundlePayload(form, selectableMovies);
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Invalid bundle data"));
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (bundle) {
+        await movieApi.adminUpdateMovieBundle(bundle._id, payload);
+        toast.success("Bundle updated");
+      } else {
+        await movieApi.adminCreateMovieBundle(payload);
+        toast.success("Bundle created");
+      }
+      onSaved();
+      onClose();
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to save bundle"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+        aria-label="Close bundle form"
+      />
+      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-[#111116] border border-white/10 p-6 shadow-2xl">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              {bundle ? "Edit Bundle" : "Add Bundle"}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Select ready movies and set a discounted bundle price.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5">
+          <div className="space-y-4">
+            <label className="space-y-1 block">
+              <span className="text-sm font-medium text-gray-300">Title</span>
+              <input
+                value={form.title}
+                onChange={(event) => setField("title", event.target.value)}
+                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                placeholder="Weekend bundle"
+              />
+            </label>
+
+            <label className="space-y-1 block">
+              <span className="text-sm font-medium text-gray-300">
+                Description
+              </span>
+              <textarea
+                value={form.description}
+                onChange={(event) =>
+                  setField("description", event.target.value)
+                }
+                rows={3}
+                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                placeholder="Short bundle description"
+              />
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-300">
+                  Price
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.price}
+                  onChange={(event) => setField("price", event.target.value)}
+                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="0"
+                />
+              </label>
+
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-300">
+                  Discount
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.discountedPrice}
+                  onChange={(event) =>
+                    setField("discountedPrice", event.target.value)
+                  }
+                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="Optional"
+                />
+              </label>
+
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-300">
+                  Sort
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.sortOrder}
+                  onChange={(event) =>
+                    setField("sortOrder", event.target.value)
+                  }
+                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="0"
+                />
+              </label>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <ImagePicker
+                label="Bundle cover"
+                value={form.image}
+                onChange={(image) => setField("image", image)}
+              />
+            </div>
+
+            <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(event) =>
+                  setField("isActive", event.target.checked)
+                }
+                className="h-4 w-4 accent-blue-600"
+              />
+              <span className="text-sm font-medium text-gray-300">
+                Active in user app
+              </span>
+            </label>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden">
+            <div className="p-4 border-b border-white/10">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-white">Movies</p>
+                  <p className="text-xs text-gray-500">
+                    {form.movieIds.length} selected
+                  </p>
+                </div>
+                <div className="text-right text-xs">
+                  <p className="text-gray-400">
+                    Total: {formatPrice(selectedTotal)} MNT
+                  </p>
+                  <p className="text-emerald-400">
+                    Save: {formatPrice(savings)} MNT
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-h-[420px] overflow-y-auto divide-y divide-white/5">
+              {selectableMovies.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-500">
+                  No ready active movies available
+                </div>
+              ) : (
+                selectableMovies.map((movie) => {
+                  const checked = form.movieIds.includes(movie._id);
+                  return (
+                    <label
+                      key={movie._id}
+                      className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleMovie(movie._id)}
+                        className="h-4 w-4 accent-blue-600"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-white truncate">
+                          {movie.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatPrice(movie.effectivePrice)} MNT
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2 py-1 rounded-full border ${
+                          movie.status === "ready" && movie.isActive
+                            ? "text-emerald-400 border-emerald-500/20 bg-emerald-500/10"
+                            : "text-red-400 border-red-500/20 bg-red-500/10"
+                        }`}
+                      >
+                        {movie.status}
+                      </span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="px-5 py-2.5 rounded-xl border border-white/10 text-white hover:bg-white/5 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold disabled:opacity-50"
+          >
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {bundle ? "Update Bundle" : "Create Bundle"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VideoUploadButton({
   movie,
   disabled,
@@ -441,6 +856,10 @@ export default function MoviesPage() {
   );
   const [selectedMovie, setSelectedMovie] = useState<AdminMovie | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBundle, setSelectedBundle] = useState<AdminMovieBundle | null>(
+    null
+  );
+  const [isBundleModalOpen, setIsBundleModalOpen] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const listParams = useMemo<AdminMovieListParams>(
@@ -466,7 +885,25 @@ export default function MoviesPage() {
     }
   );
 
+  const { data: bundleData, mutate: mutateBundles } = useSWR(
+    ["admin-movie-bundles"],
+    () => movieApi.adminListMovieBundles({ page: 1, limit: 50 })
+  );
+
+  const { data: selectableMovieData } = useSWR(
+    ["admin-movies-ready-options"],
+    () =>
+      movieApi.adminListMovies({
+        page: 1,
+        limit: 100,
+        status: "ready",
+        isActive: true,
+      })
+  );
+
   const movies = data?.data || [];
+  const bundles = bundleData?.data || [];
+  const selectableMovies = selectableMovieData?.data || [];
   const totalPages = data?.totalPages || 1;
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -484,6 +921,16 @@ export default function MoviesPage() {
     setIsModalOpen(true);
   };
 
+  const openCreateBundle = () => {
+    setSelectedBundle(null);
+    setIsBundleModalOpen(true);
+  };
+
+  const openEditBundle = (bundle: AdminMovieBundle) => {
+    setSelectedBundle(bundle);
+    setIsBundleModalOpen(true);
+  };
+
   const handleDelete = async (movie: AdminMovie) => {
     if (!window.confirm(`Delete "${movie.title}"?`)) return;
     try {
@@ -492,6 +939,17 @@ export default function MoviesPage() {
       mutate();
     } catch (error) {
       toast.error(extractErrorMessage(error, "Failed to delete movie"));
+    }
+  };
+
+  const handleDeleteBundle = async (bundle: AdminMovieBundle) => {
+    if (!window.confirm(`Delete "${bundle.title}" bundle?`)) return;
+    try {
+      await movieApi.adminDeleteMovieBundle(bundle._id);
+      toast.success("Bundle deleted");
+      mutateBundles();
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to delete bundle"));
     }
   };
 
@@ -504,6 +962,18 @@ export default function MoviesPage() {
       mutate();
     } catch (error) {
       toast.error(extractErrorMessage(error, "Failed to update status"));
+    }
+  };
+
+  const toggleBundleActive = async (bundle: AdminMovieBundle) => {
+    try {
+      await movieApi.adminUpdateMovieBundle(bundle._id, {
+        isActive: !bundle.isActive,
+      });
+      toast.success(bundle.isActive ? "Bundle deactivated" : "Bundle activated");
+      mutateBundles();
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to update bundle"));
     }
   };
 
@@ -536,14 +1006,24 @@ export default function MoviesPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openCreate}
-            className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-2xl font-bold transition-all shadow-[0_10px_20px_rgba(59,130,246,0.3)] active:scale-95 whitespace-nowrap"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add Movie</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={openCreateBundle}
+              className="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-2.5 rounded-2xl font-bold transition-all shadow-[0_10px_20px_rgba(147,51,234,0.25)] active:scale-95 whitespace-nowrap"
+            >
+              <Package className="w-5 h-5" />
+              <span>Add Bundle</span>
+            </button>
+            <button
+              type="button"
+              onClick={openCreate}
+              className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-2xl font-bold transition-all shadow-[0_10px_20px_rgba(59,130,246,0.3)] active:scale-95 whitespace-nowrap"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add Movie</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_180px] gap-3">
@@ -589,6 +1069,157 @@ export default function MoviesPage() {
           </select>
         </div>
       </div>
+
+      <section className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Movie Bundles</h2>
+              <p className="text-xs text-gray-500">
+                Group multiple ready movies and sell them at a lower price.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={openCreateBundle}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold"
+          >
+            <Plus className="w-4 h-4" />
+            New
+          </button>
+        </div>
+
+        {bundles.length === 0 ? (
+          <div className="px-6 py-10 text-center text-gray-500">
+            <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No custom bundles yet</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/2">
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Bundle
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Movies
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Visibility
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {bundles.map((bundle) => {
+                  const movieTotal = bundle.movies.reduce(
+                    (sum, movie) => sum + movie.effectivePrice,
+                    0
+                  );
+                  const savings = Math.max(0, movieTotal - bundle.effectivePrice);
+
+                  return (
+                    <tr key={bundle._id} className="hover:bg-white/2">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-14 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 overflow-hidden shrink-0 relative">
+                            {bundle.image?.url ? (
+                              <Image
+                                src={bundle.image.url}
+                                alt={bundle.title}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <Package className="w-5 h-5 opacity-50" />
+                            )}
+                          </div>
+                          <div className="min-w-[220px]">
+                            <p className="font-bold text-white">
+                              {bundle.title}
+                            </p>
+                            <p className="text-xs text-gray-500 line-clamp-1 max-w-sm">
+                              {bundle.description || "No description"}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-semibold text-gray-200">
+                          {bundle.movieCount} movies
+                        </p>
+                        <p className="text-xs text-gray-500 max-w-[260px] truncate">
+                          {bundle.movies.map((movie) => movie.title).join(", ")}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-white">
+                            {formatPrice(bundle.effectivePrice)} MNT
+                          </span>
+                          {bundle.discountedPrice != null &&
+                            bundle.discountedPrice < bundle.price && (
+                              <span className="text-xs text-gray-500 line-through">
+                                {formatPrice(bundle.price)} MNT
+                              </span>
+                            )}
+                          <span className="text-xs text-emerald-400">
+                            Save {formatPrice(savings)} MNT
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          type="button"
+                          onClick={() => toggleBundleActive(bundle)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${
+                            bundle.isActive
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              : "bg-red-500/10 text-red-400 border-red-500/20"
+                          }`}
+                        >
+                          {bundle.isActive ? "Active" : "Inactive"}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditBundle(bundle)}
+                            className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-600 hover:text-white transition-all"
+                            title="Edit bundle"
+                          >
+                            <Edit2 className="w-4.5 h-4.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBundle(bundle)}
+                            className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all"
+                            title="Delete bundle"
+                          >
+                            <Trash2 className="w-4.5 h-4.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
         <div className="overflow-x-auto">
@@ -814,6 +1445,13 @@ export default function MoviesPage() {
         movie={selectedMovie}
         onClose={() => setIsModalOpen(false)}
         onSaved={() => mutate()}
+      />
+      <BundleModal
+        isOpen={isBundleModalOpen}
+        bundle={selectedBundle}
+        movies={selectableMovies}
+        onClose={() => setIsBundleModalOpen(false)}
+        onSaved={() => mutateBundles()}
       />
     </div>
   );
