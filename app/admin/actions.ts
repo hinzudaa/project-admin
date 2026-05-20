@@ -2,14 +2,9 @@
 
 import webpush, { PushSubscription as WebPushSubscription } from "web-push";
 
-webpush.setVapidDetails(
-    "mailto:tushig.l@bishrelt.mn",
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-);
+const VAPID_PUBLIC_KEY = "BLV1o4tOhCdKw-4MfOdDWpleIcyiV_Y8C6GXK23HaNnjnX_zN7ExxhWwCHrAZvUMOXLIx33bgbunAvM016Yv8hw";
+const VAPID_PRIVATE_KEY = "VNA2L0o3ohPmsR1ZHPuU33tuI6_rq2XjuPzQaHYhCWg";
 
-// In-memory store — survives for the lifetime of the server process.
-// For multi-device or persistence across restarts, move to a database.
 const subscriptions = new Map<string, WebPushSubscription>();
 
 export async function subscribeUser(sub: WebPushSubscription & { endpoint: string }) {
@@ -27,6 +22,14 @@ export async function sendMembershipNotification(payload: {
     userName: string;
     amount: number;
 }) {
+    if (subscriptions.size === 0) return { success: true };
+
+    webpush.setVapidDetails(
+        "mailto:tushig.l@bishrelt.mn",
+        VAPID_PUBLIC_KEY,
+        VAPID_PRIVATE_KEY
+    );
+
     const message = JSON.stringify({
         title: "New Membership Purchase",
         body: `${payload.planTitle} • ${payload.userName} • ₮${payload.amount.toLocaleString()}`,
@@ -34,14 +37,11 @@ export async function sendMembershipNotification(payload: {
         url: "/admin",
     });
 
+    const entries = Array.from(subscriptions.entries());
     const results = await Promise.allSettled(
-        Array.from(subscriptions.values()).map((sub) =>
-            webpush.sendNotification(sub, message)
-        )
+        entries.map(([, sub]) => webpush.sendNotification(sub, message))
     );
 
-    // Remove expired/invalid subscriptions
-    const entries = Array.from(subscriptions.entries());
     results.forEach((result, i) => {
         if (result.status === "rejected") {
             subscriptions.delete(entries[i][0]);
