@@ -1,9 +1,95 @@
 "use client";
 
-import React from 'react';
-import { Search, Bell, Menu, LogOut, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, Bell, BellOff, Menu, LogOut, User } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { useRouter } from 'next/navigation';
+import { subscribeUser, unsubscribeUser } from '@/app/admin/actions';
+import toast from 'react-hot-toast';
+
+function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const output = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i++) {
+        output[i] = rawData.charCodeAt(i);
+    }
+    return output;
+}
+
+function PushBellButton() {
+    const [supported, setSupported] = useState(false);
+    const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            setSupported(true);
+            navigator.serviceWorker
+                .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+                .then(reg => reg.pushManager.getSubscription())
+                .then(sub => setSubscription(sub));
+        }
+    }, []);
+
+    async function subscribe() {
+        setLoading(true);
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(
+                    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+                ),
+            });
+            setSubscription(sub);
+            await subscribeUser(JSON.parse(JSON.stringify(sub)));
+            toast.success('Push notifications enabled');
+        } catch {
+            toast.error('Could not enable notifications');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function unsubscribe() {
+        setLoading(true);
+        try {
+            const endpoint = subscription?.endpoint ?? '';
+            await subscription?.unsubscribe();
+            setSubscription(null);
+            await unsubscribeUser(endpoint);
+            toast('Push notifications disabled', { icon: '🔕' });
+        } catch {
+            toast.error('Could not disable notifications');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    if (!supported) return null;
+
+    const isSubscribed = !!subscription;
+
+    return (
+        <button
+            onClick={isSubscribed ? unsubscribe : subscribe}
+            disabled={loading}
+            title={isSubscribed ? 'Disable push notifications' : 'Enable push notifications'}
+            className="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors group disabled:opacity-50"
+        >
+            {isSubscribed ? (
+                <Bell className="w-5 h-5 text-blue-400 group-hover:text-white" />
+            ) : (
+                <BellOff className="w-5 h-5 text-gray-400 group-hover:text-white" />
+            )}
+            {isSubscribed && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#0a0a0c]" />
+            )}
+        </button>
+    );
+}
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
     const { logout } = useAuth();
@@ -17,7 +103,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     return (
         <header className="h-20 bg-[#0a0a0c]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
             <div className="flex items-center gap-4 flex-1">
-                {/* Mobile Menu Toggle */}
                 <button
                     onClick={toggleSidebar}
                     className="lg:hidden p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
@@ -25,7 +110,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
                     <Menu className="w-6 h-6 text-gray-400" />
                 </button>
 
-                {/* Search Bar - hidden on very small screens, visible on md+ */}
                 <div className="flex-1 max-w-md hidden md:block">
                     <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
@@ -38,12 +122,8 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
                 </div>
             </div>
 
-            {/* Right Actions */}
             <div className="flex items-center gap-2 sm:gap-6">
-                <button className="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors group">
-                    <Bell className="w-5 h-5 text-gray-400 group-hover:text-white" />
-                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0a0a0c]" />
-                </button>
+                <PushBellButton />
 
                 <div className="h-8 w-px bg-white/10 mx-1 sm:mx-2 hidden md:block" />
 

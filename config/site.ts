@@ -9,7 +9,7 @@ export const siteConfig = {
   },
 };
 
-export const siteUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3080";
+export const siteUrl = "https://projectm.zuraach.site";
 // export const siteUrl = "https://your-production-api.com";
 
 export type SiteConfig = typeof siteConfig;

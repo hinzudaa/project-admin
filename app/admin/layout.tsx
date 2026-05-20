@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import Sidebar from "@/components/admin/Sidebar";
-import { Menu, ShieldCheck } from "lucide-react";
+import Header from "@/components/admin/Header";
+import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useNewMembershipNotifications } from "@/hooks/useNewMembershipNotifications";
 
 export default function AdminLayout({
   children,
@@ -15,6 +17,7 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
+  useNewMembershipNotifications();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -46,22 +49,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
-      {/* Mobile Header */}
-      <header className="lg:hidden flex items-center justify-between p-4 bg-[#0f0f12] border-b border-white/5 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <ShieldCheck className="text-white w-5 h-5" />
-          </div>
-          <span className="text-lg font-bold text-white">Admin</span>
-        </div>
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 text-gray-400 hover:text-white"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-      </header>
+      <Header toggleSidebar={() => setIsSidebarOpen(true)} />
 
       <main className="lg:pl-64 min-h-screen transition-all duration-300">
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
