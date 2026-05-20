@@ -37,6 +37,11 @@ function PushBellButton() {
     async function subscribe() {
         setLoading(true);
         try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                toast.error('Notification permission denied');
+                return;
+            }
             const reg = await navigator.serviceWorker.ready;
             const sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -47,8 +52,9 @@ function PushBellButton() {
             setSubscription(sub);
             await subscribeUser(JSON.parse(JSON.stringify(sub)));
             toast.success('Push notifications enabled');
-        } catch {
-            toast.error('Could not enable notifications');
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            toast.error(msg, { duration: 10000 });
         } finally {
             setLoading(false);
         }
