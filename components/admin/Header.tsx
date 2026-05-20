@@ -24,13 +24,14 @@ function PushBellButton() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            setSupported(true);
-            navigator.serviceWorker
-                .register('/sw.js', { scope: '/', updateViaCache: 'none' })
-                .then(reg => reg.pushManager.getSubscription())
-                .then(sub => setSubscription(sub));
-        }
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        navigator.serviceWorker
+            .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+            .then(reg => {
+                setSupported(true);
+                return reg.pushManager.getSubscription();
+            })
+            .then(sub => setSubscription(sub));
     }, []);
 
     async function subscribe() {
@@ -40,7 +41,7 @@ function PushBellButton() {
             const sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(
-                    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+                    "BLV1o4tOhCdKw-4MfOdDWpleIcyiV_Y8C6GXK23HaNnjnX_zN7ExxhWwCHrAZvUMOXLIx33bgbunAvM016Yv8hw"
                 ),
             });
             setSubscription(sub);
