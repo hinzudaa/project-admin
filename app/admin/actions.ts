@@ -20,7 +20,11 @@ function loadSubscriptions(): Map<string, WebPushSubscription> {
 }
 
 function saveSubscriptions(map: Map<string, WebPushSubscription>) {
-    fs.writeFileSync(SUBS_FILE, JSON.stringify(Array.from(map.entries())));
+    try {
+        fs.writeFileSync(SUBS_FILE, JSON.stringify(Array.from(map.entries())));
+    } catch {
+        // Filesystem may be read-only; subscriptions survive in-process only
+    }
 }
 
 export async function subscribeUser(sub: WebPushSubscription & { endpoint: string }) {
