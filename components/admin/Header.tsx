@@ -31,7 +31,13 @@ function PushBellButton() {
                 setSupported(true);
                 return reg.pushManager.getSubscription();
             })
-            .then(sub => setSubscription(sub));
+            .then(sub => {
+                setSubscription(sub);
+                if (sub) {
+                    // Re-register with server on every load in case the server restarted
+                    subscribeUser(JSON.parse(JSON.stringify(sub)));
+                }
+            });
     }, []);
 
     async function subscribe() {
