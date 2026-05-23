@@ -17,42 +17,20 @@ interface AIHumanFormProps {
 export default function AIHumanForm({ id, initialData }: AIHumanFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    gender: "other",
-    shortBio: "",
-    prompt: "",
-    greeting: "",
-    model: "",
-    isActive: true,
-    sortOrder: 0,
-    imageId: "",
-    imageUrl: "",
-    badge: "",
-  });
-
-  const [prevInitialData, setPrevInitialData] = useState(initialData);
-
-  if (initialData !== prevInitialData) {
-    setPrevInitialData(initialData);
-    if (initialData) {
-      setFormData({
-        name: initialData.name || "",
-        age: initialData.age?.toString() || "",
-        gender: initialData.gender || "other",
-        shortBio: initialData.shortBio || "",
-        prompt: initialData.prompt || "",
-        greeting: initialData.greeting || "",
-        model: initialData.model || "",
-        isActive: initialData.isActive ?? true,
-        sortOrder: initialData.sortOrder || 0,
-        imageId: initialData.image?._id || initialData.image?.id || "",
-        imageUrl: initialData.image?.url || "",
-        badge: initialData.badge?.join(", ") || "",
-      });
-    }
-  }
+  const [formData, setFormData] = useState(() => ({
+    name: initialData?.name || "",
+    age: initialData?.age?.toString() || "",
+    gender: initialData?.gender || "other",
+    shortBio: initialData?.shortBio || "",
+    prompt: initialData?.prompt || "",
+    greeting: initialData?.greeting || "",
+    model: initialData?.model || "",
+    isActive: initialData?.isActive ?? true,
+    sortOrder: initialData?.sortOrder || 0,
+    imageId: initialData?.image?._id || initialData?.image?.id || "",
+    imageUrl: initialData?.image?.url || "",
+    badge: initialData?.badge?.join(", ") || "",
+  }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
