@@ -22,6 +22,21 @@ import UserModal from '@/components/admin/UserModal';
 import AdjustExpModal from '@/components/admin/AdjustExpModal';
 import { User } from '@/components/providers/AuthProvider';
 import Image from 'next/image';
+const formatDate = (dateString: string) => {
+    try {
+        return new Date(dateString).toLocaleString('mn-MN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Ulaanbaatar',
+        });
+    } catch {
+        return dateString;
+    }
+};
 
 export default function UsersPage() {
     const [page, setPage] = useState(1);
@@ -221,7 +236,7 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-gray-400">
-                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                                {user.createdAt ? formatDate(user.createdAt) : 'N/A'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
