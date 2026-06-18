@@ -220,7 +220,9 @@ export default function UsersPage() {
                                             <span className="text-sm text-gray-400 capitalize">{user.gender || 'Not specified'}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm text-gray-400 capitalize">{user.createdAt?.split('Z')[0]}</span>
+                                            <span className="text-sm text-gray-400">
+                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
