@@ -31,10 +31,10 @@ export interface FinanceEntry {
 }
 
 export interface FinanceSummary {
-    income: number;
-    expense: number;
+    totalIncome: number;
+    totalExpenses: number;
     balance: number;
-    expenseByType: Record<string, number>;
+    expensesByType: Record<string, { label: string; total: number }>;
 }
 
 export interface FinanceListResponse {
@@ -42,7 +42,6 @@ export interface FinanceListResponse {
     total: number;
     page: number;
     totalPages: number;
-    summary: FinanceSummary;
 }
 
 export interface FinanceListParams {
@@ -54,8 +53,17 @@ export interface FinanceListParams {
     to?: string;
 }
 
+export interface FinanceSummaryParams {
+    from?: string;
+    to?: string;
+}
+
 export const getList = (params: FinanceListParams): Promise<FinanceListResponse> => {
     return appHttpRequest.get("/admin/finance/entries", params as Record<string, unknown>);
+};
+
+export const getSummary = (params: FinanceSummaryParams): Promise<FinanceSummary> => {
+    return appHttpRequest.get("/admin/finance/summary", params as Record<string, unknown>);
 };
 
 export const create = (data: { type: string; amount: number; note: string }): Promise<{ data: FinanceEntry }> => {
@@ -64,5 +72,6 @@ export const create = (data: { type: string; amount: number; note: string }): Pr
 
 export const financeApi = {
     getList,
+    getSummary,
     create,
 };

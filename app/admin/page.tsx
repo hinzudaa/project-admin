@@ -25,7 +25,7 @@ export default function AdminDashboard() {
 
     const { data: financeData, isLoading: financeLoading, error: financeError, mutate: mutateFinance } = useSWR(
         ['finance-stats', range.from, range.to],
-        () => financeApi.getList({ from: range.from, to: range.to, limit: 1 })
+        () => financeApi.getSummary({ from: range.from, to: range.to })
     );
 
     const isPageLoading = statsLoading || financeLoading;
@@ -106,7 +106,14 @@ export default function AdminDashboard() {
             ) : (
                 <MembershipDashboard
                     stats={statsData?.data || statsData}
-                    finance={financeData?.summary}
+                    finance={financeData ? {
+                        income: financeData.totalIncome,
+                        expense: financeData.totalExpenses,
+                        balance: financeData.balance,
+                        expenseByType: Object.fromEntries(
+                            Object.entries(financeData.expensesByType || {}).map(([, info]) => [info.label, info.total])
+                        ),
+                    } : undefined}
                 />
             )}
         </div>

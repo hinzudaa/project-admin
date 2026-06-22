@@ -63,8 +63,12 @@ export default function FinancePage() {
         () => financeApi.getList(params)
     );
 
+    const { data: summary, mutate: mutateSummary } = useSWR(
+        ['finance-summary', from, to],
+        () => financeApi.getSummary({ from: from || undefined, to: to || undefined })
+    );
+
     const items = data?.data || [];
-    const summary = data?.summary;
     const totalPages = data?.totalPages || 1;
 
     return (
@@ -88,14 +92,14 @@ export default function FinancePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     title="Нийт Орлого"
-                    value={summary?.income ?? 0}
+                    value={summary?.totalIncome ?? 0}
                     icon={TrendingUp}
                     color="emerald"
                     trend="Incomes from all sources"
                 />
                 <StatCard
                     title="Нийт Зарлага"
-                    value={summary?.expense ?? 0}
+                    value={summary?.totalExpenses ?? 0}
                     icon={TrendingDown}
                     color="rose"
                     trend="Total expenses"
@@ -115,10 +119,10 @@ export default function FinancePage() {
                         </div>
                     </div>
                     <div className="mt-4 space-y-2">
-                        {summary?.expenseByType && Object.entries(summary.expenseByType).map(([cat, amount]) => (
+                        {summary?.expensesByType && Object.entries(summary.expensesByType).map(([cat, info]) => (
                             <div key={cat} className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500 capitalize">{cat}</span>
-                                <span className="text-white font-medium">{formatCurrency(amount)}</span>
+                                <span className="text-gray-500 capitalize">{info.label}</span>
+                                <span className="text-white font-medium">{formatCurrency(info.total)}</span>
                             </div>
                         ))}
                     </div>
@@ -294,7 +298,7 @@ export default function FinancePage() {
             <FinanceEntryModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSuccess={() => mutate()}
+                onSuccess={() => { mutate(); mutateSummary(); }}
             />
         </div>
     );
